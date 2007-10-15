@@ -7,7 +7,7 @@ use Net::HTTP ();
 use URI ();
 use File::Temp qw(tempfile);
 
-our $VERSION = '0.02';
+our $VERSION = '0.03';
 
 =head1 NAME
 
@@ -32,7 +32,6 @@ sub drv_new {
     return $http ? $self : ();
 }
 
-
 sub drv_get {
     my ($self, $src) = @_;
     my (undef, $dest) = tempfile(UNLINK => 0);
@@ -54,6 +53,17 @@ sub drv_copy {
     }
     close($fh);
     return $dest;
+}
+
+sub drv_exists {
+    my ($self, $file) = @_;
+    my $path = $self->{uri}->path() . '/' . "$file";
+    $self->{http}->write_request(
+        HEAD => $path,
+        'User-Agent' => "Mozilla/5.0 VFSsimple::Http"
+    ) or return;
+    my $code = $self->{http}->read_response_headers;
+    return($code eq '200');
 }
 
 1;
